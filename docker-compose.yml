@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  db:
+    image: "postgres:14.1"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
