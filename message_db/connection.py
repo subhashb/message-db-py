@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from psycopg2.pool import SimpleConnectionPool
 from psycopg2.extensions import connection
-from psycopg2 import ProgrammingError
+from psycopg2.pool import SimpleConnectionPool
 
 
 class ConnectionPool:
@@ -44,6 +43,10 @@ class ConnectionPool:
             connection: the connection to a PostgreSQL database instance.
         """
         return self._connection_pool.getconn()
+
+    def release(self, connection: connection, close: bool = False) -> None:
+        """Release a connection back into the pool"""
+        self._connection_pool.putconn(connection, close=close)
 
     def closeall(self) -> None:
         """Close all connections handled by the pool."""
