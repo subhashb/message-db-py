@@ -24,6 +24,11 @@ def test_error_on_invalid_role():
     assert 'role "foo" does not exist' in exc.value.args[0]
 
 
+def test_error_on_invalid_max_connections():
+    with pytest.raises(ValueError) as exc:
+        ConnectionPool("postgresql://foo@localhost:5432/postgres", max_connections=-1)
+
+
 def test_retrieving_connection_from_pool(pool):
     used_count = len(pool._connection_pool._used)
 
