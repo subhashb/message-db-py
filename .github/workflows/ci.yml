@@ -50,9 +50,6 @@ jobs:
       - name: Install library
         run: poetry install --no-interaction
 
-      - name: Lint
-        run: poetry run pre-commit run --all-files
-
       - name: Tests
         run: poetry run pytest --cov --cov-report=xml
 
