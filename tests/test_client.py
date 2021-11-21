@@ -28,13 +28,13 @@ class TestMessageWrite:
     def test_write_to_store(self, client):
         client.write("testStream-123", "Event1", {"foo": "bar"})
 
-        messages = client.read("testStream-123", 0, 100)
+        messages = client.read("testStream-123")
         assert len(messages) == 1
 
     def test_writing_message_with_metadata(self, client):
         client.write("testStream-123", "Event1", {"foo": "bar"}, {"trace_id": "baz"})
 
-        messages = client.read("testStream-123", 0, 100)
+        messages = client.read("testStream-123")
         assert messages[0]["metadata"] == json.dumps({"trace_id": "baz"})
 
     def test_that_write_returns_position_of_message_written(self, client):
@@ -84,11 +84,11 @@ class TestMessageWrite:
         )
 
 
-class TestEventIO:
+class TestRead:
     def test_read_stream_from_store(self, client):
         client.write("testStream-123", "Event1", {"foo": "bar"})
 
-        messages = client.read("testStream-123", 0, 100)
+        messages = client.read("testStream-123")
         assert messages is not None
         assert messages[0]["data"] == json.dumps({"foo": "bar"})
 
@@ -96,7 +96,7 @@ class TestEventIO:
         for i in range(5):
             client.write("testStream-123", "Event1", {f"foo{i}": f"bar{i}"})
 
-        messages = client.read("testStream-123", 0, 100)
+        messages = client.read("testStream-123")
 
         assert messages is not None
         assert len(messages) == 5
@@ -106,7 +106,7 @@ class TestEventIO:
         for i in range(5):
             client.write("testStream-123", "Event1", {f"foo{i}": f"bar{i}"})
 
-        messages = client.read("testStream-123", 0, 3)
+        messages = client.read("testStream-123", no_of_messages=3)
 
         assert messages is not None
         assert len(messages) == 3
@@ -126,7 +126,7 @@ class TestEventIO:
         for i in range(5):
             client.write("testStream-456", "Event1", {"foo": f"baz{i}"})
 
-        messages = client.read("testStream-456", 0, 100)
+        messages = client.read("testStream-456")
 
         assert len(messages) == 5
         assert messages[4]["data"] == json.dumps({"foo": "baz4"})
@@ -135,7 +135,77 @@ class TestEventIO:
         for i in range(5):
             client.write("testStream-123", "Event1", {"foo": f"bar{i}"})
 
-        messages = client.read("testStream", 0, 100)
+        messages = client.read("testStream")
 
         assert len(messages) == 5
         assert messages[4]["data"] == json.dumps({"foo": "bar4"})
+
+
+class TestReadStream:
+    def test_reading_a_category_throws_error(self, client):
+        with pytest.raises(ValueError) as exc:
+            client.read_stream("testStream")
+
+        assert exc.value.args[0] == "testStream is not a stream"
+
+    def test_read_stream_from_store(self, client):
+        client.write("testStream-123", "Event1", {"foo": "bar"})
+
+        messages = client.read_stream("testStream-123")
+        assert messages is not None
+        assert messages[0]["data"] == json.dumps({"foo": "bar"})
+
+    def test_read_multiple_stream_messages_from_store(self, client):
+        for i in range(5):
+            client.write("testStream-123", "Event1", {f"foo{i}": f"bar{i}"})
+
+        messages = client.read_stream("testStream-123")
+
+        assert messages is not None
+        assert len(messages) == 5
+        assert messages[4]["data"] == json.dumps({"foo4": "bar4"})
+
+    def test_read_paginated_stream_messages_from_store(self, client):
+        for i in range(5):
+            client.write("testStream-123", "Event1", {f"foo{i}": f"bar{i}"})
+
+        messages = client.read_stream("testStream-123", no_of_messages=3)
+
+        assert messages is not None
+        assert len(messages) == 3
+        assert messages[2]["data"] == json.dumps({"foo2": "bar2"})
+
+
+class TestReadCategory:
+    def test_reading_a_stream_throws_error(self, client):
+        with pytest.raises(ValueError) as exc:
+            client.read_category("testStream-123")
+
+        assert exc.value.args[0] == "testStream-123 is not a category"
+
+    def test_read_category_messages_from_store(self, client):
+        client.write("testStream-123", "Event1", {"foo": "bar"})
+
+        messages = client.read_category("testStream")
+        assert messages is not None
+        assert messages[0]["data"] == json.dumps({"foo": "bar"})
+
+    def test_read_multiple_category_messages_from_store(self, client):
+        for i in range(5):
+            client.write("testStream-123", "Event1", {f"foo{i}": f"bar{i}"})
+
+        messages = client.read_category("testStream")
+
+        assert messages is not None
+        assert len(messages) == 5
+        assert messages[4]["data"] == json.dumps({"foo4": "bar4"})
+
+    def test_read_paginated_category_messages_from_store(self, client):
+        for i in range(5):
+            client.write("testStream-123", "Event1", {f"foo{i}": f"bar{i}"})
+
+        messages = client.read_category("testStream", no_of_messages=3)
+
+        assert messages is not None
+        assert len(messages) == 3
+        assert messages[2]["data"] == json.dumps({"foo2": "bar2"})

@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "The Python interface to the MessageDB Event Store and Message Store"
 authors = ["Subhash Bhushan <subhash.bhushan@gmail.com>"]
 
+packages = [
+    { include = "message_db" },
+]
+
 [tool.poetry.dependencies]
 python = "^3.7"
 psycopg2 = "^2.9.2"

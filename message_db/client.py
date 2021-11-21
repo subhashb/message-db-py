@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, List
 from uuid import uuid4
 
 from psycopg2.extensions import connection
@@ -98,7 +98,7 @@ class MessageDB:
 
         return position
 
-    def write_batch(self, stream_name, data, expected_version: int = None):
+    def write_batch(self, stream_name, data, expected_version: int = None) -> None:
         conn = self.connection_pool.get_connection()
 
         try:
@@ -117,14 +117,21 @@ class MessageDB:
 
         return expected_version
 
-    def read(self, stream_name, position=0, no_of_messages=1000):
+    def read(
+        self,
+        stream_name: str,
+        sql: str = None,
+        position: int = 0,
+        no_of_messages: int = 1000,
+    ) -> List[Dict]:
         conn = self.connection_pool.get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        if "-" in stream_name:
-            sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
-        else:
-            sql = "SELECT * FROM get_category_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+        if not sql:
+            if "-" in stream_name:
+                sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+            else:
+                sql = "SELECT * FROM get_category_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
 
         cursor.execute(
             sql,
@@ -141,6 +148,28 @@ class MessageDB:
         self.connection_pool.release(conn)
 
         return messages
+
+    def read_stream(self, stream_name, position=0, no_of_messages=1000) -> List[Dict]:
+        if "-" not in stream_name:
+            raise ValueError(f"{stream_name} is not a stream")
+
+        sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+
+        return self.read(
+            stream_name, sql=sql, position=position, no_of_messages=no_of_messages
+        )
+
+    def read_category(
+        self, category_name, position=0, no_of_messages=1000
+    ) -> List[Dict]:
+        if "-" in category_name:
+            raise ValueError(f"{category_name} is not a category")
+
+        sql = "SELECT * FROM get_category_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+
+        return self.read(
+            category_name, sql=sql, position=position, no_of_messages=no_of_messages
+        )
 
     def read_last_message(self, stream_name):
         conn = self.connection_pool.get_connection()

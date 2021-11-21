@@ -145,3 +145,6 @@ poetry.lock
 
 # Postgres data
 pgdata/
+
+# Project-specific
+database/
