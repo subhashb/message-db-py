@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from psycopg2.extensions import connection
 from psycopg2.pool import SimpleConnectionPool
 
@@ -7,7 +9,7 @@ from psycopg2.pool import SimpleConnectionPool
 class ConnectionPool:
     @classmethod
     def from_url(
-        cls, *args: str, max_connections: int = 100, **kwargs: str
+        cls, *args: str, max_connections: int = 100, **kwargs: Any
     ) -> ConnectionPool:
         """Return a Connection Pool configured from the given URL.
 
@@ -21,7 +23,7 @@ class ConnectionPool:
         """
         return cls(*args, max_connections=max_connections, **kwargs)
 
-    def __init__(self, *args: str, max_connections: int = 100, **kwargs: str) -> None:
+    def __init__(self, *args: str, max_connections: int = 100, **kwargs: Any) -> None:
         if not isinstance(max_connections, int) or max_connections < 0:
             raise ValueError('"max_connections" must be a positive integer')
 

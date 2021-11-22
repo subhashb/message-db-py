@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Any, Dict, List
 from uuid import uuid4
 
 from psycopg2.extensions import connection
@@ -13,7 +13,7 @@ class MessageDB:
     """This class provides a Python interface to all MessageDB commands."""
 
     @classmethod
-    def from_url(cls, url: str, **kwargs: str) -> MessageDB:
+    def from_url(cls, url: str, **kwargs: Any) -> MessageDB:
         """Returns a MessageDB client object configured from the given URL.
 
         The general form of a connection string is:
@@ -51,10 +51,10 @@ class MessageDB:
         connection: connection,
         stream_name: str,
         message_type: str,
-        data: Dict,
-        metadata: Dict = None,
+        data: Dict[str, Any],
+        metadata: Dict[str, Any] = None,
         expected_version: int = None,
-    ):
+    ) -> int:
         try:
             with connection.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
@@ -85,7 +85,7 @@ class MessageDB:
         data: Dict,
         metadata: Dict = None,
         expected_version: int = None,
-    ):
+    ) -> int:
         conn = self.connection_pool.get_connection()
 
         try:
@@ -98,13 +98,13 @@ class MessageDB:
 
         return position
 
-    def write_batch(self, stream_name, data, expected_version: int = None) -> None:
+    def write_batch(self, stream_name, data, expected_version: int = None) -> int:
         conn = self.connection_pool.get_connection()
 
         try:
             with conn:
                 for record in data:
-                    expected_version = self._write(
+                    position = self._write(
                         conn,
                         stream_name,
                         record[0],
@@ -112,10 +112,12 @@ class MessageDB:
                         metadata=record[2] if len(record) > 2 else None,
                         expected_version=expected_version,
                     )
+
+                    expected_version = position
         finally:
             self.connection_pool.release(conn)
 
-        return expected_version
+        return position
 
     def read(
         self,
@@ -123,7 +125,7 @@ class MessageDB:
         sql: str = None,
         position: int = 0,
         no_of_messages: int = 1000,
-    ) -> List[Dict]:
+    ) -> List[Dict[str, Any]]:
         conn = self.connection_pool.get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -149,7 +151,9 @@ class MessageDB:
 
         return messages
 
-    def read_stream(self, stream_name, position=0, no_of_messages=1000) -> List[Dict]:
+    def read_stream(
+        self, stream_name: str, position: int = 0, no_of_messages: int = 1000
+    ) -> List[Dict[str, Any]]:
         if "-" not in stream_name:
             raise ValueError(f"{stream_name} is not a stream")
 
@@ -160,8 +164,8 @@ class MessageDB:
         )
 
     def read_category(
-        self, category_name, position=0, no_of_messages=1000
-    ) -> List[Dict]:
+        self, category_name: str, position: int = 0, no_of_messages: int = 1000
+    ) -> List[Dict[str, Any]]:
         if "-" in category_name:
             raise ValueError(f"{category_name} is not a category")
 
@@ -171,7 +175,7 @@ class MessageDB:
             category_name, sql=sql, position=position, no_of_messages=no_of_messages
         )
 
-    def read_last_message(self, stream_name):
+    def read_last_message(self, stream_name) -> Dict[str, Any]:
         conn = self.connection_pool.get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
