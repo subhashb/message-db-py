@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, List
 from uuid import uuid4
 
@@ -143,11 +144,19 @@ class MessageDB:
                 "batch_size": no_of_messages,
             },
         )
-        messages = cursor.fetchall()
+        raw_messages = cursor.fetchall()
 
         conn.commit()
         cursor.close()
         self.connection_pool.release(conn)
+
+        messages = []
+        for message in raw_messages:
+            message["data"] = json.loads(message["data"])
+            message["metadata"] = (
+                json.loads(message["metadata"]) if message["metadata"] else None
+            )
+            messages.append(message)
 
         return messages
 
@@ -190,4 +199,9 @@ class MessageDB:
         cursor.close()
         self.connection_pool.release(conn)
 
+        if message:
+            message["data"] = json.loads(message["data"])
+            message["metadata"] = (
+                json.loads(message["metadata"]) if message["metadata"] else None
+            )
         return message
