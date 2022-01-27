@@ -75,7 +75,9 @@ class MessageDB:
 
                 result = cursor.fetchone()
         except Exception as exc:
-            raise ValueError(exc.args[0].splitlines()[0]) from exc
+            raise ValueError(
+                f"{getattr(exc, 'pgcode')}-{getattr(exc, 'pgerror').splitlines()[0]}"
+            ) from exc
 
         return result["write_message"]
 
@@ -131,7 +133,24 @@ class MessageDB:
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         if not sql:
-            if "-" in stream_name:
+            if stream_name == "$all":
+                sql = """
+                    SELECT
+                        id::varchar,
+                        stream_name::varchar,
+                        type::varchar,
+                        position::bigint,
+                        global_position::bigint,
+                        data::varchar,
+                        metadata::varchar,
+                        time::timestamp
+                    FROM
+                        messages
+                    WHERE
+                        global_position > %(position)s
+                    LIMIT %(batch_size)s
+                """
+            elif "-" in stream_name:
                 sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
             else:
                 sql = "SELECT * FROM get_category_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
