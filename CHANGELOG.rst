@@ -1,6 +1,11 @@
 Release History
 ===============
 
+0.1.3
+-----
+* Upgrade packages and documentation
+* Change package structure to `src` and `tests` folders
+
 0.1.2
 -----
 
