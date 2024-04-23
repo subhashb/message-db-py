@@ -1,0 +1,14 @@
+[paths]
+source =
+   message_db
+
+[run]
+branch = true
+source =
+    message_db
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+
