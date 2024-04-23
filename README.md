@@ -1,7 +1,7 @@
-# Message-DB-py
+# message-db-py
 
-Message-DB-py is a Python interface to the MessageDB event store and message store, designed for easy integration into
-Python applications.
+`message-db-py` is a Python interface to the Message DB event store and message 
+store, designed for easy integration into Python applications.
 
 [![Build Status](https://github.com/subhashb/message-db-py/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/subhashb/message-db-py/actions)
 [![Code Coverage](https://codecov.io/gh/subhashb/message-db-py/graph/badge.svg?token=QMNUSLN2OM)](https://codecov.io/gh/subhashb/message-db-py)

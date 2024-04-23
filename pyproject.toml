@@ -3,6 +3,14 @@ name = "message-db-py"
 version = "0.1.2"
 description = "The Python interface to the MessageDB Event Store and Message Store"
 authors = ["Subhash Bhushan <subhash.bhushan@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 
 packages = [
     { include = "message_db" },
