@@ -11,21 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.11", "3.12"]
     name: Python ${{ matrix.python-version }} Tests
 
     services:
       message-db:
-        image: ethangarofolo/message-db:1.2.6
+        image: ethangarofolo/message-db:1.3.1
         ports:
           - "0.0.0.0:5432:5432"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -36,25 +36,25 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
+      - name: Cache multiple paths
+        uses: actions/cache@v3
         with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          path: |
+            .venv
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ matrix.python-version }}-
 
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
-
-      - name: Install library
-        run: poetry install --no-interaction
 
       - name: Tests
         run: poetry run pytest --cov --cov-report=xml
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
           fail_ci_if_error: true

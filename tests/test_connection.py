@@ -25,7 +25,7 @@ def test_error_on_invalid_role():
 
 
 def test_error_on_invalid_max_connections():
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError):
         ConnectionPool("postgresql://foo@localhost:5432/postgres", max_connections=-1)
 
 

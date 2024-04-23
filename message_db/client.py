@@ -36,10 +36,10 @@ class MessageDB:
         self,
         dbname: str = "message_store",
         user: str = "message_store",
-        password: str = None,
+        password: str = "",
         host: str = "localhost",
         port: int = 5432,
-        connection_pool: ConnectionPool = None,
+        connection_pool: ConnectionPool | None = None,
     ) -> None:
         if not connection_pool:
             connection_pool = ConnectionPool(
@@ -53,8 +53,8 @@ class MessageDB:
         stream_name: str,
         message_type: str,
         data: Dict[str, Any],
-        metadata: Dict[str, Any] = None,
-        expected_version: int = None,
+        metadata: Dict[str, Any] | None = None,
+        expected_version: int | None = None,
     ) -> int:
         try:
             with connection.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -74,6 +74,8 @@ class MessageDB:
                 )
 
                 result = cursor.fetchone()
+                if result is None:
+                    raise ValueError("No result returned from the database operation.")
         except Exception as exc:
             raise ValueError(
                 f"{getattr(exc, 'pgcode')}-{getattr(exc, 'pgerror').splitlines()[0]}"
@@ -86,8 +88,8 @@ class MessageDB:
         stream_name: str,
         message_type: str,
         data: Dict,
-        metadata: Dict = None,
-        expected_version: int = None,
+        metadata: Dict | None = None,
+        expected_version: int | None = None,
     ) -> int:
         conn = self.connection_pool.get_connection()
 
@@ -101,7 +103,9 @@ class MessageDB:
 
         return position
 
-    def write_batch(self, stream_name, data, expected_version: int = None) -> int:
+    def write_batch(
+        self, stream_name, data, expected_version: int | None = None
+    ) -> int:
         conn = self.connection_pool.get_connection()
 
         try:
@@ -125,7 +129,7 @@ class MessageDB:
     def read(
         self,
         stream_name: str,
-        sql: str = None,
+        sql: str | None = None,
         position: int = 0,
         no_of_messages: int = 1000,
     ) -> List[Dict[str, Any]]:
@@ -171,11 +175,16 @@ class MessageDB:
 
         messages = []
         for message in raw_messages:
-            message["data"] = json.loads(message["data"])
-            message["metadata"] = (
-                json.loads(message["metadata"]) if message["metadata"] else None
+            processed_message = dict(
+                message
+            )  # Convert each RealDictRow to a dictionary
+            processed_message["data"] = json.loads(processed_message["data"])
+            processed_message["metadata"] = (
+                json.loads(processed_message["metadata"])
+                if processed_message["metadata"]
+                else None
             )
-            messages.append(message)
+            messages.append(processed_message)
 
         return messages
 
@@ -203,7 +212,7 @@ class MessageDB:
             category_name, sql=sql, position=position, no_of_messages=no_of_messages
         )
 
-    def read_last_message(self, stream_name) -> Dict[str, Any]:
+    def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:
         conn = self.connection_pool.get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
