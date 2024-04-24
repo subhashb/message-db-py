@@ -119,6 +119,18 @@ the message database. This method ensures that the message is written with the
 appropriate type, data, and metadata, and optionally, at a specific expected
 version of the stream.
 
+```python
+def write(
+    self,
+    stream_name: str,
+    message_type: str,
+    data: Dict,
+    metadata: Dict | None = None,
+    expected_version: int | None = None,
+) -> int:
+    """Write a message to a stream."""
+```
+
 #### Parameters
 
 - `stream_name` (`str`): The name of the stream to which the message will be
@@ -140,8 +152,6 @@ ensuring the integrity of the stream's order. Defaults to `None`.
 - `position` (`int`): The position (or version number) of the message in the
 stream after it has been successfully written.
 
-#### Example
-
 ```python
 message_db = MessageDB(connection_pool=my_pool)
 stream_name = "user_updates"
@@ -154,12 +164,28 @@ position = message_db.write(stream_name, message_type, data, metadata)
 print("Message written at position:", position)
 ```
 
+---
+
 ### Read messages from a stream or category
 
 The `read` method retrieves messages from a specified stream or category. This
 method supports flexible query options through a direct SQL parameter or by
 determining the SQL based on the stream name and its context
 (stream vs. category vs. all messages).
+
+```python
+def read(
+    self,
+    stream_name: str,
+    sql: str | None = None,
+    position: int = 0,
+    no_of_messages: int = 1000,
+) -> List[Dict[str, Any]]:
+    """Read messages from a stream or category.
+
+    Returns a list of messages from the stream or category starting from the given position.
+    """
+```
 
 #### Parameters
 
@@ -181,8 +207,6 @@ retrieve. Defaults to 1000.
 represented as a dictionary containing details such as the message ID,
 stream name, type, position, global position, data, metadata, and timestamp.
 
-#### Example
-
 ```python
 message_db = MessageDB(connection_pool=my_pool)
 stream_name = "user-updates"
@@ -200,11 +224,18 @@ for message in messages:
     print(message)
 ```
 
+---
+
 ### Read Last Message from stream
 
 The `read_last_message` method retrieves the most recent message from a
 specified stream. This method is useful when you need the latest state or
 event in a stream without querying the entire message history.
+
+```python
+def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:
+    """Read the last message from a stream."""
+```
 
 #### Parameters
 
@@ -216,8 +247,6 @@ retrieved.
 - `Dict`[`str`, `Any`] | `None`: A dictionary representing the last message 
 in the specified stream. If the stream is empty or the message does not exist,
 `None` is returned.
-
-#### Example
 
 ```python
 message_db = MessageDB(connection_pool=my_pool)
@@ -232,6 +261,8 @@ else:
     print("No messages found in the stream.")
 ```
 
+---
+
 ## Utility APIs
 
 - [Read Stream](#read-stream)
@@ -244,6 +275,16 @@ The `read_stream` method retrieves a sequence of messages from a specified strea
 within the message database. This method is specifically designed to fetch
 messages from a well-defined stream based on a starting position and a
 specified number of messages.
+
+```python
+def read_stream(
+    self, stream_name: str, position: int = 0, no_of_messages: int = 1000
+) -> List[Dict[str, Any]]:
+    """Read messages from a stream.
+
+    Returns a list of messages from the stream starting from the given position.
+    """
+```
 
 #### Parameters
 
@@ -267,8 +308,6 @@ structured in key-value pairs.
 - `ValueError`: Raised if the provided stream_name does not contain a hyphen
 (-), which is required to validate the name as a stream identifier.
 
-#### Example
-
 ```python
 message_db = MessageDB(connection_pool=my_pool)
 stream_name = "user-updates-2023"
@@ -281,12 +320,24 @@ for message in messages:
     print(message)
 ```
 
+---
+
 ### Read Category
 
 The `read_category` method retrieves a sequence of messages from a specified
 category within the message database. It is designed to fetch messages based
 on a category identifier, starting from a specific position, and up to a
 defined limit of messages.
+
+```python
+def read_category(
+    self, category_name: str, position: int = 0, no_of_messages: int = 1000
+) -> List[Dict[str, Any]]:
+    """Read messages from a category.
+
+    Returns a list of messages from the category starting from the given position.
+    """
+```
 
 #### Parameters
 
@@ -311,8 +362,6 @@ creation.
 which is not allowed for category identifiers and implies a misunderstanding
 between streams and categories.
 
-#### Example
-
 ```python
 message_db = MessageDB(connection_pool=my_pool)
 category_name = "user_updates"
@@ -326,6 +375,8 @@ for message in messages:
     print(message)
 ```
 
+---
+
 ### Write Batch
 
 The `write_batch` method is designed to write a series of messages to a
@@ -334,6 +385,13 @@ operations, where all messages are written in sequence, and each subsequent
 message can optionally depend on the position of the last message written.
 This method is useful when multiple messages need to be written as a part of a
 single transactional context.
+
+```python
+def write_batch(
+    self, stream_name, data, expected_version: int | None = None
+) -> int:
+    """Write a batch of messages to a stream."""
+```
 
 #### Parameters
 
@@ -352,8 +410,6 @@ Defaults to None.
 - `position` (`int`): The position (or version number) of the last message
 written in the stream as a result of the batch operation.
 
-#### Example
-
 ```python
 message_db = MessageDB(connection_pool=my_pool)
 stream_name = "order_events"
@@ -371,6 +427,8 @@ last_position = message_db.write_batch(stream_name, data)
 
 print(f"Last message written at position: {last_position}")
 ```
+
+---
 
 ## License
 
