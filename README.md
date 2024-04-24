@@ -26,11 +26,10 @@ $ pip install message-db-py
 Clone the Message DB repository to set up the database:
 
 ```shell
-git clone git@github.com:message-db/message-db.git
+$ git clone git@github.com:message-db/message-db.git
 ```
 
-More detailed instructions are in the [Installation]
-(https://github.com/message-db/message-db?tab=readme-ov-file#installation)
+More detailed instructions are in the [Installation](https://github.com/message-db/message-db?tab=readme-ov-file#installation)
 section of Message DB repo.
 
 Running the database installation script creates the database, schema, table,
@@ -42,7 +41,7 @@ repo. Change directory to the message-db directory where you cloned the repo,
 and run the script:
 
 ```shell
-database/install.sh
+$ database/install.sh
 ```
 
 Make sure that your default Postgres user has administrative privileges.
@@ -56,7 +55,7 @@ If you prefer either a different database name, you can override the name
 using the `DATABASE_NAME` environment variable.
 
 ```shell
-DATABASE_NAME=some_other_database database/install.sh
+$ DATABASE_NAME=some_other_database database/install.sh
 ```
 
 ### Uninstalling the Database
@@ -64,13 +63,13 @@ DATABASE_NAME=some_other_database database/install.sh
 If you need to drop the database (for example, on a local dev machine):
 
 ``` bash
-database/uninstall.sh
+$ database/uninstall.sh
 ```
 
 If you're upgrading a previous version of the database:
 
 ``` bash
-database/update.sh
+$ database/update.sh
 ```
 
 ## Docker Image
@@ -97,7 +96,7 @@ Here's a quick example of how to publish and read messages using Message-DB-py:
 from message_db import MessageDB
 
 # Initialize the database connection
-store = MessageDB(CONN_URL)
+store = MessageDB(CONNECTION_URL)
 
 # Write a message
 store.write("user_stream", "register", {"name": "John Doe"})
@@ -108,6 +107,10 @@ print(message)
 ```
 
 ## Primary APIs
+
+- [Write Messages](#write)
+- [Read Messages](#read-messages-from-a-stream-or-category)
+- [Read Last Message from stream](#read-last-message-from-stream)
 
 ### Write messages
 
@@ -230,6 +233,10 @@ else:
 ```
 
 ## Utility APIs
+
+- [Read Stream](#read-stream)
+- [Read Category](#read-category)
+- [Write Batch](#write-batch)
 
 ### Read Stream
 
