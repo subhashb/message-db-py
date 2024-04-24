@@ -4,6 +4,7 @@ import json
 from typing import Any, Dict, List
 from uuid import uuid4
 
+from psycopg2 import DatabaseError
 from psycopg2.extensions import connection
 from psycopg2.extras import Json, RealDictCursor
 
@@ -55,7 +56,7 @@ class MessageDB:
         data: Dict[str, Any],
         metadata: Dict[str, Any] | None = None,
         expected_version: int | None = None,
-    ) -> int | None:
+    ) -> int:
         try:
             with connection.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
@@ -74,7 +75,9 @@ class MessageDB:
                 )
 
                 result = cursor.fetchone()
-        except Exception as exc:
+                if result is None:
+                    raise ValueError("No result returned from the database operation.")
+        except DatabaseError as exc:
             raise ValueError(
                 f"{getattr(exc, 'pgcode')}-{getattr(exc, 'pgerror').splitlines()[0]}"
             ) from exc
@@ -88,7 +91,7 @@ class MessageDB:
         data: Dict,
         metadata: Dict | None = None,
         expected_version: int | None = None,
-    ) -> int | None:
+    ) -> int:
         conn = self.connection_pool.get_connection()
 
         try:
@@ -103,7 +106,7 @@ class MessageDB:
 
     def write_batch(
         self, stream_name, data, expected_version: int | None = None
-    ) -> int | None:
+    ) -> int:
         conn = self.connection_pool.get_connection()
 
         try:

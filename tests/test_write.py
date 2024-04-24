@@ -1,4 +1,7 @@
+from unittest.mock import MagicMock
+
 import pytest
+from psycopg2.extras import RealDictCursor
 
 
 class TestMessageWrite:
@@ -83,3 +86,23 @@ class TestMessageWrite:
 
         messages = client.read("concurrentStream-123")
         assert len(messages) == 10
+
+    def test_write_with_no_result(self, client):
+        # Create a mock connection and a mock cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock(spec=RealDictCursor)
+        mock_cursor.fetchone.return_value = None  # Simulate no result returned
+
+        # Setup the mock cursor to be used when calling cursor() on the mock connection
+        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+
+        # Execute the _write method and expect a ValueError
+        with pytest.raises(ValueError) as exc_info:
+            client._write(
+                connection=mock_connection,
+                stream_name="testStream",
+                message_type="testType",
+                data={"key": "value"},
+            )
+
+        assert "No result returned from the database operation." in str(exc_info.value)
