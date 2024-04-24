@@ -57,6 +57,7 @@ class MessageDB:
         metadata: Dict[str, Any] | None = None,
         expected_version: int | None = None,
     ) -> int:
+        """Write a message to a stream."""
         try:
             with connection.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
@@ -92,6 +93,7 @@ class MessageDB:
         metadata: Dict | None = None,
         expected_version: int | None = None,
     ) -> int:
+        """Write a message to a stream."""
         conn = self.connection_pool.get_connection()
 
         try:
@@ -107,6 +109,7 @@ class MessageDB:
     def write_batch(
         self, stream_name, data, expected_version: int | None = None
     ) -> int:
+        """Write a batch of messages to a stream."""
         conn = self.connection_pool.get_connection()
 
         try:
@@ -134,6 +137,10 @@ class MessageDB:
         position: int = 0,
         no_of_messages: int = 1000,
     ) -> List[Dict[str, Any]]:
+        """Read messages from a stream or category.
+
+        Returns a list of messages from the stream or category starting from the given position.
+        """
         conn = self.connection_pool.get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -192,6 +199,10 @@ class MessageDB:
     def read_stream(
         self, stream_name: str, position: int = 0, no_of_messages: int = 1000
     ) -> List[Dict[str, Any]]:
+        """Read messages from a stream.
+
+        Returns a list of messages from the stream starting from the given position.
+        """
         if "-" not in stream_name:
             raise ValueError(f"{stream_name} is not a stream")
 
@@ -204,6 +215,10 @@ class MessageDB:
     def read_category(
         self, category_name: str, position: int = 0, no_of_messages: int = 1000
     ) -> List[Dict[str, Any]]:
+        """Read messages from a category.
+
+        Returns a list of messages from the category starting from the given position.
+        """
         if "-" in category_name:
             raise ValueError(f"{category_name} is not a category")
 
@@ -214,6 +229,7 @@ class MessageDB:
         )
 
     def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:
+        """Read the last message from a stream."""
         conn = self.connection_pool.get_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 

@@ -24,6 +24,7 @@ class ConnectionPool:
         return cls(*args, max_connections=max_connections, **kwargs)
 
     def __init__(self, *args: str, max_connections: int = 100, **kwargs: Any) -> None:
+        """Initialize the Connection Pool"""
         if not isinstance(max_connections, int) or max_connections < 0:
             raise ValueError('"max_connections" must be a positive integer')
 

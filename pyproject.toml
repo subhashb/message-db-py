@@ -6,10 +6,41 @@ authors = ["Subhash Bhushan <subhash.bhushan@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Database",
+    "Topic :: Database :: Database Engines/Servers",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: MIT License", 
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+]
+
+keywords = [
+    "message-db",
+    "event-sourcing",
+    "event-store",
+    "messaging",
+    "cqrs",
+    "command-query-responsibility-segregation",
+    "events",
+    "streaming",
+    "database",
+    "postgresql",
+    "python",
+    "async",
+    "microservices",
+    "distributed-systems",
+    "message-queue",
+    "event-driven",
+    "real-time"
 ]
 
 packages = [
