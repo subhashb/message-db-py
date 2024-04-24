@@ -34,6 +34,14 @@ class TestRead:
         assert message["position"] == 4
         assert message["data"] == {"foo": "bar4"}
 
+    def test_last_message_empty_stream(self, client):
+        result = client.read_last_message("emptyStream-123")
+        assert result is None
+
+    def test_read_from_non_existing_stream(self, client):
+        messages = client.read("nonExistingStream-123")
+        assert messages == []
+
     def test_read_specific_stream_message(self, client):
         for i in range(5):
             client.write("testStream-123", "Event1", {"foo": f"bar{i}"})

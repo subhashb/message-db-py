@@ -68,3 +68,18 @@ class TestMessageWrite:
             exc.value.args[0]
             == "P0001-ERROR:  Wrong expected version: 1 (Stream: testStream-123, Stream Version: 2)"
         )
+
+    def test_concurrent_writes(self, client):
+        from threading import Thread
+
+        def write_msg():
+            client.write("concurrentStream-123", "Event", {"thread": "value"})
+
+        threads = [Thread(target=write_msg) for _ in range(10)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        messages = client.read("concurrentStream-123")
+        assert len(messages) == 10

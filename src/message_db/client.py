@@ -55,7 +55,7 @@ class MessageDB:
         data: Dict[str, Any],
         metadata: Dict[str, Any] | None = None,
         expected_version: int | None = None,
-    ) -> int:
+    ) -> int | None:
         try:
             with connection.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
@@ -74,8 +74,6 @@ class MessageDB:
                 )
 
                 result = cursor.fetchone()
-                if result is None:
-                    raise ValueError("No result returned from the database operation.")
         except Exception as exc:
             raise ValueError(
                 f"{getattr(exc, 'pgcode')}-{getattr(exc, 'pgerror').splitlines()[0]}"
@@ -90,7 +88,7 @@ class MessageDB:
         data: Dict,
         metadata: Dict | None = None,
         expected_version: int | None = None,
-    ) -> int:
+    ) -> int | None:
         conn = self.connection_pool.get_connection()
 
         try:
@@ -105,7 +103,7 @@ class MessageDB:
 
     def write_batch(
         self, stream_name, data, expected_version: int | None = None
-    ) -> int:
+    ) -> int | None:
         conn = self.connection_pool.get_connection()
 
         try:

@@ -34,3 +34,7 @@ mdb.write("your_stream_name", "your_message_type", {"data": "value"})
 message = mdb.read_last_message("your_stream_name")
 print(message)
 ```
+
+## License
+
+The Postgres Message Store is released under the [MIT License](https://github.com/subhashb/message-db-py/blob/main/LICENSE).
