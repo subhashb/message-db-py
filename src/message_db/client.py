@@ -136,6 +136,8 @@ class MessageDB:
         sql: str | None = None,
         position: int = 0,
         no_of_messages: int = 1000,
+        consumer_group_member: int | None = None,
+        consumer_group_size: int | None = None,
     ) -> List[Dict[str, Any]]:
         """Read messages from a stream or category.
 
@@ -165,16 +167,21 @@ class MessageDB:
             elif "-" in stream_name:
                 sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
             else:
-                sql = "SELECT * FROM get_category_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+                sql = "SELECT * FROM get_category_messages(%(stream_name)s::varchar, %(position)s::bigint, %(batch_size)s::bigint"
+                if consumer_group_member is not None:
+                    sql += ", NULL, %(consumer_group_member)s::bigint, %(consumer_group_size)s::bigint"
+                sql += ");"
 
-        cursor.execute(
-            sql,
-            {
-                "stream_name": stream_name,
-                "position": position,
-                "batch_size": no_of_messages,
-            },
-        )
+        params = {
+            "stream_name": stream_name,
+            "position": position,
+            "batch_size": no_of_messages,
+        }
+        if consumer_group_member is not None:
+            params["consumer_group_member"] = consumer_group_member
+            params["consumer_group_size"] = consumer_group_size
+
+        cursor.execute(sql, params)
         raw_messages = cursor.fetchall()
 
         conn.commit()
@@ -213,19 +220,67 @@ class MessageDB:
         )
 
     def read_category(
-        self, category_name: str, position: int = 0, no_of_messages: int = 1000
+        self,
+        category_name: str,
+        position: int = 0,
+        no_of_messages: int = 1000,
+        consumer_group_member: int | None = None,
+        consumer_group_size: int | None = None,
     ) -> List[Dict[str, Any]]:
         """Read messages from a category.
 
         Returns a list of messages from the category starting from the given position.
+
+        Optionally supports consumer groups for horizontal scaling.
+
+        Args:
+            category_name: The name of the category (must not contain hyphen)
+            position: Starting position for reading messages
+            no_of_messages: Maximum number of messages to retrieve
+            consumer_group_member: Zero-based consumer identifier within the group
+            consumer_group_size: Total number of consumers in the group
+
+        Returns:
+            List of message dictionaries
+
+        Raises:
+            ValueError: If category_name contains hyphen or consumer group parameters are invalid
         """
         if "-" in category_name:
             raise ValueError(f"{category_name} is not a category")
 
-        sql = "SELECT * FROM get_category_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+        # Validate consumer group parameters
+        if (consumer_group_member is None) != (consumer_group_size is None):
+            raise ValueError(
+                "Both consumer_group_member and consumer_group_size must be provided together or both must be None"
+            )
+
+        if consumer_group_member is not None and consumer_group_size is not None:
+            if consumer_group_member < 0:
+                raise ValueError(
+                    f"consumer_group_member must be >= 0, got {consumer_group_member}"
+                )
+            if consumer_group_size <= 0:
+                raise ValueError(
+                    f"consumer_group_size must be > 0, got {consumer_group_size}"
+                )
+            if consumer_group_member >= consumer_group_size:
+                raise ValueError(
+                    f"consumer_group_member ({consumer_group_member}) must be less than consumer_group_size ({consumer_group_size})"
+                )
+
+        sql = "SELECT * FROM get_category_messages(%(stream_name)s::varchar, %(position)s::bigint, %(batch_size)s::bigint"
+        if consumer_group_member is not None:
+            sql += ", NULL, %(consumer_group_member)s::bigint, %(consumer_group_size)s::bigint"
+        sql += ");"
 
         return self.read(
-            category_name, sql=sql, position=position, no_of_messages=no_of_messages
+            category_name,
+            sql=sql,
+            position=position,
+            no_of_messages=no_of_messages,
+            consumer_group_member=consumer_group_member,
+            consumer_group_size=consumer_group_size,
         )
 
     def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:

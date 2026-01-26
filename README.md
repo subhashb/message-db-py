@@ -4,7 +4,7 @@ Message DB is a fully-featured event store and message store implemented in
 PostgreSQL for Pub/Sub, Event Sourcing, Messaging, and Evented Microservices
 applications.
 
-`message-db-py` is a Python interface to the Message DB event store and message 
+`message-db-py` is a Python interface to the Message DB event store and message
 store, designed for easy integration into Python applications.
 
 [![Build Status](https://github.com/subhashb/message-db-py/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/subhashb/message-db-py/actions)
@@ -18,7 +18,7 @@ store, designed for easy integration into Python applications.
 Use pip to install:
 
 ```shell
-$ pip install message-db-py
+pip install message-db-py
 ```
 
 ## Setting up Message DB database
@@ -26,7 +26,7 @@ $ pip install message-db-py
 Clone the Message DB repository to set up the database:
 
 ```shell
-$ git clone git@github.com:message-db/message-db.git
+git clone git@github.com:message-db/message-db.git
 ```
 
 More detailed instructions are in the [Installation](https://github.com/message-db/message-db?tab=readme-ov-file#installation)
@@ -41,7 +41,7 @@ repo. Change directory to the message-db directory where you cloned the repo,
 and run the script:
 
 ```shell
-$ database/install.sh
+database/install.sh
 ```
 
 Make sure that your default Postgres user has administrative privileges.
@@ -55,21 +55,21 @@ If you prefer either a different database name, you can override the name
 using the `DATABASE_NAME` environment variable.
 
 ```shell
-$ DATABASE_NAME=some_other_database database/install.sh
+DATABASE_NAME=some_other_database database/install.sh
 ```
 
 ### Uninstalling the Database
 
 If you need to drop the database (for example, on a local dev machine):
 
-``` bash
-$ database/uninstall.sh
+```bash
+database/uninstall.sh
 ```
 
 If you're upgrading a previous version of the database:
 
-``` bash
-$ database/update.sh
+```bash
+database/update.sh
 ```
 
 ## Docker Image
@@ -82,9 +82,8 @@ The source is in [Gitlab](https://gitlab.com/such-software/message-db-docker)
 
 ## Usage
 
-The complete user guide for Message DB is available at 
-[http://docs.eventide-project.org/user-guide/message-db/]
-(http://docs.eventide-project.org/user-guide/message-db/).
+The complete user guide for Message DB is available at
+<http://docs.eventide-project.org/user-guide/message-db/>.
 
 Below is documentation for methods exposed through the Python API.
 
@@ -108,7 +107,7 @@ print(message)
 
 ## Primary APIs
 
-- [Write Messages](#write)
+- [Write Messages](#write-messages)
 - [Read Messages](#read-messages-from-a-stream-or-category)
 - [Read Last Message from stream](#read-last-message-from-stream)
 
@@ -131,7 +130,7 @@ def write(
     """Write a message to a stream."""
 ```
 
-#### Parameters
+**Parameters:**
 
 - `stream_name` (`str`): The name of the stream to which the message will be
 written. This identifies the logical series of messages.
@@ -141,13 +140,13 @@ reflects the nature of the event or data change the message represents.
 containing the actual information the message carries.
 - `metadata` (`Dict` | `None`): Optional. Metadata about the message, provided as a
 dictionary. Metadata can include any additional information that is not part of
-the - main data payload, such as sender information or timestamps.
+the main data payload, such as sender information or timestamps.
 Defaults to None.
 - `expected_version` (`int` | `None`): Optional. The version of the stream where the
 client expects to write the message. This is used for concurrency control and
 ensuring the integrity of the stream's order. Defaults to `None`.
 
-#### Returns
+**Returns:**
 
 - `position` (`int`): The position (or version number) of the message in the
 stream after it has been successfully written.
@@ -187,7 +186,7 @@ def read(
     """
 ```
 
-#### Parameters
+**Parameters:**
 
 - `stream_name` (`str`): The identifier for the stream or category from which
 messages are to be retrieved. Special names like "$all" can be used to fetch
@@ -201,7 +200,7 @@ from which to begin reading messages. Defaults to 0.
 - `no_of_messages` (`int`, optional): The maximum number of messages to
 retrieve. Defaults to 1000.
 
-#### Returns
+**Returns:**
 
 - List[Dict[str, Any]]: A list of messages, where each message is
 represented as a dictionary containing details such as the message ID,
@@ -237,14 +236,14 @@ def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:
     """Read the last message from a stream."""
 ```
 
-#### Parameters
+**Parameters:**
 
 - `stream_name` (`str`): The name of the stream from which the last message is to be
 retrieved.
 
-#### Returns
+**Returns:**
 
-- `Dict`[`str`, `Any`] | `None`: A dictionary representing the last message 
+- `Dict`[`str`, `Any`] | `None`: A dictionary representing the last message
 in the specified stream. If the stream is empty or the message does not exist,
 `None` is returned.
 
@@ -265,11 +264,11 @@ else:
 
 ## Utility APIs
 
-- [Read Stream](#read-stream)
-- [Read Category](#read-category)
-- [Write Batch](#write-batch)
+- [Read Stream](#read-stream-utility)
+- [Read Category](#read-category-utility)
+- [Write Batch](#write-batch-utility)
 
-### Read Stream
+### Read Stream (Utility)
 
 The `read_stream` method retrieves a sequence of messages from a specified stream
 within the message database. This method is specifically designed to fetch
@@ -286,7 +285,7 @@ def read_stream(
     """
 ```
 
-#### Parameters
+**Parameters:**
 
 - `stream_name` (`str`): The name of the stream from which messages are to be
 retrieved. This name must include a hyphen (-) to be recognized as a valid
@@ -297,13 +296,13 @@ the stream.
 - `no_of_messages` (`int`, optional): The maximum number of messages to retrieve
 from the stream. Defaults to 1000.
 
-#### Returns
+**Returns:**
 
 - `List`[`Dict`[`str`, `Any`]]: A list of dictionaries, each representing a message
 retrieved from the stream. Each dictionary contains the message details
 structured in key-value pairs.
 
-#### Exceptions
+**Exceptions:**
 
 - `ValueError`: Raised if the provided stream_name does not contain a hyphen
 (-), which is required to validate the name as a stream identifier.
@@ -322,7 +321,7 @@ for message in messages:
 
 ---
 
-### Read Category
+### Read Category (Utility)
 
 The `read_category` method retrieves a sequence of messages from a specified
 category within the message database. It is designed to fetch messages based
@@ -339,7 +338,7 @@ def read_category(
     """
 ```
 
-#### Parameters
+**Parameters:**
 
 - `category_name` (`str`): The name of the category from which messages are to be
 retrieved. This identifier should not include a hyphen (-) to validate it as
@@ -349,14 +348,14 @@ reading messages within the category. Defaults to 0.
 - `no_of_messages` (`int`, optional): The maximum number of messages to retrieve
 from the category. Defaults to 1000.
 
-#### Returns
+**Returns:**
 
 - List[Dict[str, Any]]: A list of dictionaries, each representing a message.
 Each dictionary includes details about the message such as the message ID,
 stream name, type, position, global position, data, metadata, and time of
 creation.
 
-#### Exceptions
+**Exceptions:**
 
 - `ValueError`: Raised if the provided category_name contains a hyphen (-),
 which is not allowed for category identifiers and implies a misunderstanding
@@ -377,7 +376,7 @@ for message in messages:
 
 ---
 
-### Write Batch
+### Write Batch (Utility)
 
 The `write_batch` method is designed to write a series of messages to a
 specified stream in a batch operation. It ensures atomicity in writing
@@ -393,7 +392,7 @@ def write_batch(
     """Write a batch of messages to a stream."""
 ```
 
-#### Parameters
+**Parameters:**
 
 - `stream_name` (`str`): The name of the stream to which the batch of messages
 will be written.
@@ -405,7 +404,7 @@ where the batch operation expects to start writing. This can be used for
 concurrency control to ensure messages are written in the expected order.
 Defaults to None.
 
-#### Returns
+**Returns:**
 
 - `position` (`int`): The position (or version number) of the last message
 written in the stream as a result of the batch operation.
@@ -427,6 +426,130 @@ last_position = message_db.write_batch(stream_name, data)
 
 print(f"Last message written at position: {last_position}")
 ```
+
+---
+
+## Consumer Groups
+
+Consumer groups enable horizontal scaling by distributing the processing load of a
+single category among multiple consumers. This allows parallel processing of messages
+while ensuring that each stream is processed by exactly one consumer in the group.
+
+### How Consumer Groups Work
+
+Consumer groups use **consistent hashing** to assign streams to consumers:
+
+1. Each stream's cardinal ID (the part after the first hyphen) is hashed to a 64-bit integer
+2. The hash is divided by the group size using modulo division
+3. The result determines which consumer processes that stream
+4. The same stream always maps to the same consumer, ensuring consistency
+
+### Using Consumer Groups
+
+To use consumer groups with `read_category`, specify both the `consumer_group_member`
+(zero-based consumer identifier) and `consumer_group_size` (total number of consumers):
+
+```python
+message_db = MessageDB(connection_pool=my_pool)
+category_name = "user_updates"
+
+# Consumer 0 in a group of 3
+messages_0 = message_db.read_category(
+    category_name,
+    consumer_group_member=0,
+    consumer_group_size=3
+)
+
+# Consumer 1 in a group of 3
+messages_1 = message_db.read_category(
+    category_name,
+    consumer_group_member=1,
+    consumer_group_size=3
+)
+
+# Consumer 2 in a group of 3
+messages_2 = message_db.read_category(
+    category_name,
+    consumer_group_member=2,
+    consumer_group_size=3
+)
+```
+
+### Consumer Group Parameters
+
+- `consumer_group_member` (`int` | `None`): Zero-based consumer identifier (0, 1, 2, etc.)
+  - Must be >= 0
+  - Must be less than `consumer_group_size`
+- `consumer_group_size` (`int` | `None`): Total number of consumers in the group
+  - Must be > 0
+
+**Important**: Both parameters must be provided together or both must be `None`.
+Providing only one will raise a `ValueError`.
+
+### Complete Example
+
+Here's a complete example of using consumer groups for parallel processing:
+
+```python
+from message_db import MessageDB
+import threading
+
+# Initialize the database connection
+message_db = MessageDB.from_url("postgresql://message_store@localhost:5432/message_store")
+
+# Define a consumer function
+def process_messages(consumer_id, group_size):
+    while True:
+        messages = message_db.read_category(
+            "user_updates",
+            position=get_last_processed_position(consumer_id),
+            no_of_messages=100,
+            consumer_group_member=consumer_id,
+            consumer_group_size=group_size
+        )
+
+        if not messages:
+            break
+
+        for message in messages:
+            # Process each message
+            print(f"Consumer {consumer_id} processing: {message['data']}")
+
+        # Update the last processed position
+        update_last_processed_position(consumer_id, messages[-1]['global_position'])
+
+# Run 3 consumers in parallel
+group_size = 3
+threads = []
+
+for consumer_id in range(group_size):
+    thread = threading.Thread(
+        target=process_messages,
+        args=(consumer_id, group_size)
+    )
+    thread.start()
+    threads.append(thread)
+
+# Wait for all consumers to finish
+for thread in threads:
+    thread.join()
+```
+
+### Benefits of Consumer Groups
+
+- **Horizontal Scaling**: Distribute processing across multiple instances
+- **No Duplication**: Each stream is processed by exactly one consumer
+- **Consistency**: The same stream always goes to the same consumer
+- **Parallel Processing**: Multiple consumers can process different streams simultaneously
+- **Fault Tolerance**: If a consumer fails, you can redistribute the group
+
+### Best Practices
+
+1. **Group Size**: Choose a group size that matches your processing capacity
+2. **Position Tracking**: Each consumer should track its own position independently
+3. **Error Handling**: Implement retry logic for failed message processing
+4. **Monitoring**: Monitor each consumer's progress and lag separately
+5. **Deployment**: Deploy consumers as separate processes or containers
 
 ---
 

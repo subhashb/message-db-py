@@ -148,3 +148,4 @@ pgdata/
 
 # Project-specific
 database/
+coverage.json

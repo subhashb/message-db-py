@@ -61,3 +61,36 @@ class TestRead:
 
         assert len(messages) == 5
         assert messages[4]["data"] == {"foo": "bar4"}
+
+    def test_read_category_without_consumer_groups(self, client):
+        """Test reading from category using generic read() method without consumer groups."""
+        # Write to multiple streams in the same category
+        for i in range(3):
+            client.write(f"testCategory-{i}", "Event1", {"stream_id": i})
+
+        # Read category without specifying consumer group parameters
+        messages = client.read("testCategory", position=0, no_of_messages=100)
+
+        assert len(messages) == 3
+        # Verify we got messages from all streams
+        stream_ids = {msg["data"]["stream_id"] for msg in messages}
+        assert stream_ids == {0, 1, 2}
+
+    def test_read_category_with_consumer_groups_using_generic_read(self, client):
+        """Test reading from category using generic read() method WITH consumer groups."""
+        # Write to multiple streams in the same category
+        for i in range(6):
+            client.write(f"testGeneric-{i}", "Event1", {"stream_id": i})
+
+        # Read category using generic read() with consumer group parameters
+        messages = client.read(
+            "testGeneric",
+            position=0,
+            no_of_messages=100,
+            consumer_group_member=0,
+            consumer_group_size=2
+        )
+
+        # Should get messages from some streams (whichever hash to consumer 0)
+        assert len(messages) > 0
+        assert len(messages) <= 6
