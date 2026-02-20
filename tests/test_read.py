@@ -88,7 +88,7 @@ class TestRead:
             position=0,
             no_of_messages=100,
             consumer_group_member=0,
-            consumer_group_size=2
+            consumer_group_size=2,
         )
 
         # Should get messages from some streams (whichever hash to consumer 0)

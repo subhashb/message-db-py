@@ -6,42 +6,53 @@ class TestConsumerGroupValidation:
         with pytest.raises(ValueError) as exc:
             client.read_category("testStream", consumer_group_member=0)
 
-        assert "Both consumer_group_member and consumer_group_size must be provided together" in str(
-            exc.value
+        assert (
+            "Both consumer_group_member and consumer_group_size must be provided together"
+            in str(exc.value)
         )
 
     def test_consumer_group_size_without_member_raises_error(self, client):
         with pytest.raises(ValueError) as exc:
             client.read_category("testStream", consumer_group_size=3)
 
-        assert "Both consumer_group_member and consumer_group_size must be provided together" in str(
-            exc.value
+        assert (
+            "Both consumer_group_member and consumer_group_size must be provided together"
+            in str(exc.value)
         )
 
     def test_negative_consumer_group_member_raises_error(self, client):
         with pytest.raises(ValueError) as exc:
-            client.read_category("testStream", consumer_group_member=-1, consumer_group_size=3)
+            client.read_category(
+                "testStream", consumer_group_member=-1, consumer_group_size=3
+            )
 
         assert "consumer_group_member must be >= 0" in str(exc.value)
 
     def test_zero_consumer_group_size_raises_error(self, client):
         with pytest.raises(ValueError) as exc:
-            client.read_category("testStream", consumer_group_member=0, consumer_group_size=0)
+            client.read_category(
+                "testStream", consumer_group_member=0, consumer_group_size=0
+            )
 
         assert "consumer_group_size must be > 0" in str(exc.value)
 
     def test_negative_consumer_group_size_raises_error(self, client):
         with pytest.raises(ValueError) as exc:
-            client.read_category("testStream", consumer_group_member=0, consumer_group_size=-1)
+            client.read_category(
+                "testStream", consumer_group_member=0, consumer_group_size=-1
+            )
 
         assert "consumer_group_size must be > 0" in str(exc.value)
 
     def test_consumer_group_member_exceeds_size_raises_error(self, client):
         with pytest.raises(ValueError) as exc:
-            client.read_category("testStream", consumer_group_member=3, consumer_group_size=3)
+            client.read_category(
+                "testStream", consumer_group_member=3, consumer_group_size=3
+            )
 
-        assert "consumer_group_member (3) must be less than consumer_group_size (3)" in str(
-            exc.value
+        assert (
+            "consumer_group_member (3) must be less than consumer_group_size (3)"
+            in str(exc.value)
         )
 
     def test_consumer_group_member_equal_to_size_minus_one_is_valid(self, client):
@@ -113,7 +124,9 @@ class TestConsumerGroupFunctionality:
         assert total_messages == 10
 
         # Verify all streams were covered
-        all_streams = {msg["stream_name"] for msg in messages_0 + messages_1 + messages_2}
+        all_streams = {
+            msg["stream_name"] for msg in messages_0 + messages_1 + messages_2
+        }
         expected_streams = {f"testStream-stream-{i}" for i in range(10)}
         assert all_streams == expected_streams
 

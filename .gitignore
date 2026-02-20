@@ -138,7 +138,6 @@ dmypy.json
 cython_debug/
 
 # Poetry
-poetry.lock
 
 # VS Code
 .vscode/
