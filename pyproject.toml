@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "message-db-py"
-version = "0.3.0"
+version = "0.3.1"
 description = "The Python interface to the MessageDB Event Store and Message Store"
 authors = ["Subhash Bhushan <subhash.bhushan@gmail.com>"]
 license = "MIT"
