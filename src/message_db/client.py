@@ -283,6 +283,51 @@ class MessageDB:
             consumer_group_size=consumer_group_size,
         )
 
+    def stream_identifiers(self, category_name: str) -> List[str]:
+        """Return all unique aggregate identifiers for a stream category.
+
+        Extracts distinct identifiers from stream names matching the given
+        category, excluding snapshot streams.  Stream names follow the pattern
+        ``{category}-{identifier}``; snapshot streams use
+        ``{category}:snapshot-{identifier}``.
+
+        Args:
+            category_name: The stream category (must not contain a hyphen).
+
+        Returns:
+            Sorted list of unique aggregate identifiers.
+
+        Raises:
+            ValueError: If *category_name* contains a hyphen.
+        """
+        if "-" in category_name:
+            raise ValueError(f"{category_name} is not a category")
+
+        conn = self.connection_pool.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT DISTINCT
+                substring(stream_name from position('-' in stream_name) + 1)
+            FROM message_store.messages
+            WHERE stream_name LIKE %(pattern)s
+              AND stream_name NOT LIKE %(snapshot_pattern)s
+            ORDER BY 1
+            """,
+            {
+                "pattern": f"{category_name}-%",
+                "snapshot_pattern": f"{category_name}:snapshot-%",
+            },
+        )
+        identifiers = [row[0] for row in cursor.fetchall()]
+
+        conn.commit()
+        cursor.close()
+        self.connection_pool.release(conn)
+
+        return identifiers
+
     def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:
         """Read the last message from a stream."""
         conn = self.connection_pool.get_connection()
