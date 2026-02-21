@@ -320,7 +320,7 @@ class MessageDB:
                 "snapshot_pattern": f"{category_name}:snapshot-%",
             },
         )
-        identifiers = [row[0] for row in cursor.fetchall()]
+        identifiers = [row[0] for row in cursor.fetchall() if row[0]]
 
         conn.commit()
         cursor.close()
