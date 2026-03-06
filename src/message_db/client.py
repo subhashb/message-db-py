@@ -144,49 +144,51 @@ class MessageDB:
         Returns a list of messages from the stream or category starting from the given position.
         """
         conn = self.connection_pool.get_connection()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        if not sql:
-            if stream_name == "$all":
-                sql = """
-                    SELECT
-                        id::varchar,
-                        stream_name::varchar,
-                        type::varchar,
-                        position::bigint,
-                        global_position::bigint,
-                        data::varchar,
-                        metadata::varchar,
-                        time::timestamp
-                    FROM
-                        messages
-                    WHERE
-                        global_position > %(position)s
-                    LIMIT %(batch_size)s
-                """
-            elif "-" in stream_name:
-                sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
-            else:
-                sql = "SELECT * FROM get_category_messages(%(stream_name)s::varchar, %(position)s::bigint, %(batch_size)s::bigint"
-                if consumer_group_member is not None:
-                    sql += ", NULL, %(consumer_group_member)s::bigint, %(consumer_group_size)s::bigint"
-                sql += ");"
+            if not sql:
+                if stream_name == "$all":
+                    sql = """
+                        SELECT
+                            id::varchar,
+                            stream_name::varchar,
+                            type::varchar,
+                            position::bigint,
+                            global_position::bigint,
+                            data::varchar,
+                            metadata::varchar,
+                            time::timestamp
+                        FROM
+                            messages
+                        WHERE
+                            global_position > %(position)s
+                        LIMIT %(batch_size)s
+                    """
+                elif "-" in stream_name:
+                    sql = "SELECT * FROM get_stream_messages(%(stream_name)s, %(position)s, %(batch_size)s);"
+                else:
+                    sql = "SELECT * FROM get_category_messages(%(stream_name)s::varchar, %(position)s::bigint, %(batch_size)s::bigint"
+                    if consumer_group_member is not None:
+                        sql += ", NULL, %(consumer_group_member)s::bigint, %(consumer_group_size)s::bigint"
+                    sql += ");"
 
-        params = {
-            "stream_name": stream_name,
-            "position": position,
-            "batch_size": no_of_messages,
-        }
-        if consumer_group_member is not None:
-            params["consumer_group_member"] = consumer_group_member
-            params["consumer_group_size"] = consumer_group_size
+            params = {
+                "stream_name": stream_name,
+                "position": position,
+                "batch_size": no_of_messages,
+            }
+            if consumer_group_member is not None:
+                params["consumer_group_member"] = consumer_group_member
+                params["consumer_group_size"] = consumer_group_size
 
-        cursor.execute(sql, params)
-        raw_messages = cursor.fetchall()
+            cursor.execute(sql, params)
+            raw_messages = cursor.fetchall()
 
-        conn.commit()
-        cursor.close()
-        self.connection_pool.release(conn)
+            conn.commit()
+            cursor.close()
+        finally:
+            self.connection_pool.release(conn)
 
         messages = []
         for message in raw_messages:
@@ -304,45 +306,49 @@ class MessageDB:
             raise ValueError(f"{category_name} is not a category")
 
         conn = self.connection_pool.get_connection()
-        cursor = conn.cursor()
+        try:
+            cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            SELECT DISTINCT
-                substring(stream_name from position('-' in stream_name) + 1)
-            FROM message_store.messages
-            WHERE stream_name LIKE %(pattern)s
-              AND stream_name NOT LIKE %(snapshot_pattern)s
-            ORDER BY 1
-            """,
-            {
-                "pattern": f"{category_name}-%",
-                "snapshot_pattern": f"{category_name}:snapshot-%",
-            },
-        )
-        identifiers = [row[0] for row in cursor.fetchall() if row[0]]
+            cursor.execute(
+                """
+                SELECT DISTINCT
+                    substring(stream_name from position('-' in stream_name) + 1)
+                FROM message_store.messages
+                WHERE stream_name LIKE %(pattern)s
+                  AND stream_name NOT LIKE %(snapshot_pattern)s
+                ORDER BY 1
+                """,
+                {
+                    "pattern": f"{category_name}-%",
+                    "snapshot_pattern": f"{category_name}:snapshot-%",
+                },
+            )
+            identifiers = [row[0] for row in cursor.fetchall() if row[0]]
 
-        conn.commit()
-        cursor.close()
-        self.connection_pool.release(conn)
+            conn.commit()
+            cursor.close()
+        finally:
+            self.connection_pool.release(conn)
 
         return identifiers
 
     def read_last_message(self, stream_name: str) -> Dict[str, Any] | None:
         """Read the last message from a stream."""
         conn = self.connection_pool.get_connection()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute(
-            "SELECT * from get_last_stream_message(%(stream_name)s);",
-            {"stream_name": stream_name},
-        )
+            cursor.execute(
+                "SELECT * from get_last_stream_message(%(stream_name)s);",
+                {"stream_name": stream_name},
+            )
 
-        message = cursor.fetchone()
+            message = cursor.fetchone()
 
-        conn.commit()
-        cursor.close()
-        self.connection_pool.release(conn)
+            conn.commit()
+            cursor.close()
+        finally:
+            self.connection_pool.release(conn)
 
         if message:
             message["data"] = json.loads(message["data"])

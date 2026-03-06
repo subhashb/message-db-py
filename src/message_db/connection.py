@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from psycopg2.extensions import connection
-from psycopg2.pool import SimpleConnectionPool
+from psycopg2.pool import ThreadedConnectionPool
 
 
 class ConnectionPool:
@@ -35,7 +35,7 @@ class ConnectionPool:
         # Minimum connections start at 1
         min_connections = 1
 
-        self._connection_pool = SimpleConnectionPool(
+        self._connection_pool = ThreadedConnectionPool(
             min_connections, self.max_connections, *self.args, **self.kwargs
         )
 

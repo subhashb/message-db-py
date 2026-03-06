@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   message-db:
     container_name: message-db

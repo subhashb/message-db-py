@@ -1,9 +1,11 @@
+import concurrent.futures
+import threading
 from unittest.mock import patch
 
 import pytest
 from psycopg2 import OperationalError, ProgrammingError
 from psycopg2.extensions import TRANSACTION_STATUS_ACTIVE
-from psycopg2.pool import PoolError
+from psycopg2.pool import PoolError, ThreadedConnectionPool
 
 from message_db.connection import ConnectionPool
 
@@ -107,3 +109,32 @@ def test_network_error_on_connection():
             pool = ConnectionPool(CONNECT_URL, max_connections=5)
             pool.get_connection()
         assert "Network Error" in str(exc.value)
+
+
+def test_connection_pool_uses_threaded_pool(pool):
+    """Verify that ConnectionPool uses ThreadedConnectionPool internally."""
+    assert isinstance(pool._connection_pool, ThreadedConnectionPool)
+
+
+def test_concurrent_get_and_release():
+    """Multiple threads can get and release connections without PoolError."""
+    pool = ConnectionPool(CONNECT_URL, max_connections=10)
+    errors = []
+    barrier = threading.Barrier(8)
+
+    def worker():
+        try:
+            barrier.wait(timeout=5)
+            conn = pool.get_connection()
+            conn.cursor().execute("SELECT 1")
+            conn.commit()
+            pool.release(conn)
+        except Exception as e:
+            errors.append(e)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = [executor.submit(worker) for _ in range(8)]
+        concurrent.futures.wait(futures)
+
+    pool.closeall()
+    assert errors == [], f"Errors during concurrent access: {errors}"
