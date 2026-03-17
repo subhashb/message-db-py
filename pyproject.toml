@@ -48,7 +48,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11"
 psycopg2 = "^2.9.11"
 
 [tool.poetry.group.dev.dependencies]
