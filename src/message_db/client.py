@@ -163,6 +163,7 @@ class MessageDB:
                             messages
                         WHERE
                             global_position > %(position)s
+                        ORDER BY global_position
                         LIMIT %(batch_size)s
                     """
                 elif "-" in stream_name:
