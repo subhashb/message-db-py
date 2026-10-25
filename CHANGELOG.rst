@@ -31,7 +31,8 @@ Release History
 -----
 
 * Add consumer group support for reading categories
-* Add Python 3.14 support and drop Python 3.9 and 3.10
+* Add Python 3.14 support
+* Require Python 3.11 or later
 * Upgrade all dependencies
 
 0.2.0
