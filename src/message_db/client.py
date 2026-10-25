@@ -163,6 +163,7 @@ class MessageDB:
                             messages
                         WHERE
                             global_position > %(position)s
+                        ORDER BY global_position
                         LIMIT %(batch_size)s
                     """
                 elif "-" in stream_name:
@@ -195,7 +196,11 @@ class MessageDB:
             processed_message = dict(
                 message
             )  # Convert each RealDictRow to a dictionary
-            processed_message["data"] = json.loads(processed_message["data"])
+            processed_message["data"] = (
+                json.loads(processed_message["data"])
+                if processed_message["data"]
+                else None
+            )
             processed_message["metadata"] = (
                 json.loads(processed_message["metadata"])
                 if processed_message["metadata"]
@@ -351,7 +356,7 @@ class MessageDB:
             self.connection_pool.release(conn)
 
         if message:
-            message["data"] = json.loads(message["data"])
+            message["data"] = json.loads(message["data"]) if message["data"] else None
             message["metadata"] = (
                 json.loads(message["metadata"]) if message["metadata"] else None
             )
